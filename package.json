@@ -23,6 +23,7 @@
     "electron-react-devtools": "^0.4.0"
   },
   "dependencies": {
+    "axios": "^0.17.1",
     "body-parser": "^1.18.0",
     "express": "^4.15.4",
     "foreman": "^2.0.0",

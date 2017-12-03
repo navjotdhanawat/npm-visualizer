@@ -6,7 +6,7 @@ import * as _ from 'underscore';
 import { remote, ipcRenderer } from 'electron';
 import {
     RaisedButton, GridList, Paper, List, ListItem, FloatingActionButton, Divider, Menu, MenuItem,
-    LinearProgress, CircularProgress, Snackbar
+    LinearProgress, CircularProgress, Snackbar, Subheader
 } from 'material-ui';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import RemoveRedEye from 'material-ui/svg-icons/image/remove-red-eye';
@@ -16,6 +16,7 @@ import ContentCopy from 'material-ui/svg-icons/content/content-copy';
 import Download from 'material-ui/svg-icons/file/file-download';
 import Delete from 'material-ui/svg-icons/action/delete';
 import FontIcon from 'material-ui/FontIcon';
+import  { Redirect } from 'react-router-dom';
 import {
     Table,
     TableBody,
@@ -49,16 +50,17 @@ const styles = {
 class TodoList extends Component {
     constructor(props) {
         super(props);
-        
+
         this.db = null;
         var path = Lockr.getAll(true)[0] ? Lockr.getAll(true)[0].path : '';
-        this.props.fetchDependancies(path);
+        // this.props.fetchDependancies(path);
+        debugger
         this.state = {
             dep: {},
             data: [],
             loading: 'indeterminate',
             path: path,
-            loader: true,
+            loader: path ? true : false,
             snackbar: false,
             autoHideDuration: 3000,
             message: '',
@@ -69,7 +71,13 @@ class TodoList extends Component {
         this.updatePackages = this.updatePackages.bind(this);
         this.addProject = this.addProject.bind(this);
         this.removePackages = this.removePackages.bind(this);
-        this.getPackages(this.state.path);
+        this.selectProject = this.selectProject.bind(this);
+        this.clearProject = this.clearProject.bind(this);
+
+        if(path) {
+            this.getPackages(this.state.path);
+        }
+
         this.selectedIndexes = [];
         // ipcRenderer.send('get-db');
     }
@@ -82,13 +90,20 @@ class TodoList extends Component {
     listenEvents() {
         var self = this;
         ipcRenderer.on('package-list-close', (event, error, content) => {
-            
+
             var output = Object.assign(content.output[1], content.output[0]);
             self.onCellHoverExit(output);
             self.showSnackbar('Outdated packages listing');
             self.props.fetchDependanciesSuccess(content);
         });
         ipcRenderer.on('package-update-close', (event, error, content) => {
+            self.hideLoader();
+            self.showSnackbar('Selected packages successfully updated');
+            console.log(content);
+            self.getPackages(self.state.path);
+        });
+
+        ipcRenderer.on('package-latest-close', (event, error, content) => {
             self.hideLoader();
             self.showSnackbar('Selected packages successfully updated');
             console.log(content);
@@ -111,7 +126,7 @@ class TodoList extends Component {
         ipcRenderer.on('get-db-close', (event, error, db) => {
             console.log(db);
             // self.db = db;
-            
+
         });
     }
 
@@ -137,23 +152,45 @@ class TodoList extends Component {
     }
 
     updatePackages() {
-        this.showLoader();
-        var packages = [];
-        this.selectedIndexes.forEach(function (index) {
-            packages.push(Object.keys(this.state.data)[index]);
-        }, this);
-        packages = packages.toString().replace(/,/g, ' ');
-        ipcRenderer.send('package-update', { path: this.state.path, packages: packages });
+        if (this.selectedIndexes.length) {
+            this.showLoader();
+            var packages = [];
+            this.selectedIndexes.forEach(function (index) {
+                packages.push(Object.keys(this.state.data)[index]);
+            }, this);
+            packages = packages.toString().replace(/,/g, ' ');
+            ipcRenderer.send('package-update', { path: this.state.path, packages: packages });
+        } else {
+            this.showSnackbar('Please select package');
+        }
+    }
+
+    updatePackagesLatest() {
+        if (this.selectedIndexes.length) {
+            this.showLoader();
+            var packages = [];
+            this.selectedIndexes.forEach(function (index) {
+                packages.push(Object.keys(this.state.data)[index]);
+            }, this);
+            packages = packages.toString().replace(/,/g, '@latest ');
+            ipcRenderer.send('package-latest', { path: this.state.path, packages: packages });
+        } else {
+            this.showSnackbar('Please select package');
+        }
     }
 
     removePackages() {
-        this.showLoader();
-        var packages = [];
-        this.selectedIndexes.forEach(function (index) {
-            packages.push(Object.keys(this.state.data)[index]);
-        }, this);
-        packages = packages.toString().replace(/,/g, ' ');
-        ipcRenderer.send('package-remove', { path: this.state.path, packages: packages });
+        if (this.selectedIndexes.length) {
+            this.showLoader();
+            var packages = [];
+            this.selectedIndexes.forEach(function (index) {
+                packages.push(Object.keys(this.state.data)[index]);
+            }, this);
+            packages = packages.toString().replace(/,/g, ' ');
+            ipcRenderer.send('package-remove', { path: this.state.path, packages: packages });
+        } else {
+            this.showSnackbar('Please select package');
+        }
     }
 
     updateProject() {
@@ -161,7 +198,7 @@ class TodoList extends Component {
         ipcRenderer.send('package-update-all', this.state.path);
     }
 
-    
+
 
     handleRowSelection(selected) {
         this.selectedIndexes = selected;
@@ -188,11 +225,28 @@ class TodoList extends Component {
         };
 
         Lockr.set(path[0], doc);
+        this.setState({projects: Lockr.getAll(true), path: path[0]});
+        this.getPackages(path[0]);
+
+    }
+
+    selectProject(path,event) {
+        // path = btoa(path);
+        debugger
+        this.setState({path: path});
+        this.getPackages(path);
+        // window.location.hash = `#/${path}`;
+        // return (<Redirect to={`#/${path}`}  />)
+    }
+
+    clearProject() {
+        Lockr.flush();
+        this.setState({path: '', data: {}, projects:[]});
     }
 
     render() {
         var packages = this.state.data || {};
-        
+
         return (
             <div>
                 <Snackbar
@@ -200,34 +254,35 @@ class TodoList extends Component {
                     message={this.state.message}
                     autoHideDuration={this.state.autoHideDuration}
                 />
-                {this.state.loader ? 
+                {this.state.loader ?
                 <div>
                     <div style={style.overlay}></div>
                     <CircularProgress size={60} thickness={7} style={style.loader} />
                 </div> : null}
                 <LinearProgress mode={this.state.loading} />
                 <div>
-                    <GridList cols={4}>
-                        <div cols={1}>
-                            <Paper zDepth={2} style={style.todoBoard} value={100}>
-                                <List>
+                    <GridList cols={8}>
+                        <div cols={3}>
+                            <Paper zDepth={2} style={style.leftPanel} value={100}>
+                                <Menu>
+                                    <Subheader>Project List</Subheader>
                                     {this.state.projects && this.state.projects.length ?
                                         this.state.projects.map(function (project, keyIndex) {
                                             return (
-                                                <ListItem key={project.path} primaryText={project.package} />
+                                                <MenuItem focusState="focused" onClick={this.selectProject.bind(this, project.path)} primaryText={project.package} key={project.path} />
                                             )
-                                        }, this) : <ListItem primaryText="No projects added" />}
-                                </List>
+                                        }, this) : <MenuItem primaryText="No projects added" />}
+                                </Menu>
                                 <Divider />
                                 <div>
                                     <Menu>
                                         <MenuItem onClick={this.addProject} primaryText="Add Project" leftIcon={<PersonAdd />} />
-                                        <MenuItem primaryText="Clear" leftIcon={<Delete />} />
+                                        <MenuItem onClick={this.clearProject} primaryText="Clear Projects" leftIcon={<Delete />} />
                                     </Menu>
                                 </div>
                             </Paper>
                         </div>
-                        <div cols={3}>
+                        <div cols={5}>
                             <Paper zDepth={2} style={style.pkgTable}>
                                 <div>
                                     <RaisedButton onClick={this.updatePackages} label="Update" primary={true} style={style.todoFormButton} />

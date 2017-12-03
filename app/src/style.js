@@ -4,7 +4,7 @@ const style = {
         position: 'absolute',
         backgroundColor: 'rgba(0, 0, 0, 0.73)',
         width: '100%',
-        height: '100%',
+        height: '100vh',
         zIndex: '999'
     },
     loader: {
@@ -26,6 +26,9 @@ const style = {
     todoBoard: {
         margin: '20px',
         paddingTop: '20px'
+    },
+    leftPanel: {
+        margin: '20px',
     },
     pkgTable: {
         margin: '20px',
