@@ -1,26 +1,41 @@
 {
-  "name": "electron-react-starter-kit",
+  "name": "npm-visualizer",
   "version": "1.0.0",
-  "description": "Minimum boilerplate code for using ReactJS in Electron",
+  "homepage": "https://github.com/navjotdhanawat/npm-visualizer",
+  "description": "NPM Visualizer: Manage NPM packages with GUI",
+  "author": "Navjot Dhanawat <navjotdhanawat@gmail.com>",
+  "email": "navjotdhanawat@gmail.com",
   "main": "app.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "build"
   },
-  "repository": "https://github.com/hungle88/electron-react-starter-kit",
+  "repository": "",
   "keywords": [
     "Electron",
     "React",
-    "starter",
-    "tutorial",
-    "demo"
+    "NPM",
+    "GUI",
+    "node gui"
   ],
-  "author": "Hung Q. Le",
   "license": "CC0-1.0",
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "electron-prebuilt-compile": "^1.6.11",
-    "electron-react-devtools": "^0.4.0"
+    "electron-react-devtools": "^0.4.0",
+    "electron-builder": "^19.19.1",
+    "electron-packager": "^8.7.2"
+  },
+  "build": {
+    "appId": "com.npm.visualizer",
+    "asar": true,
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   },
   "dependencies": {
     "axios": "^0.17.1",

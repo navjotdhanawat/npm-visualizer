@@ -78,8 +78,9 @@ ipcMain.on('package-latest', (event, options) => {
 	if (!directory) {
 		throw new Error(' is not defined');
 	}
+	console.log(`cd ${directory} && npm update ${packages}`);
 
-	shell.exec(`cd ${directory} && npm update ${packages} --save --json=true`, function (code, stdout, stderr) {
+	shell.exec(`cd ${directory} && npm update ${packages} --save`, function (code, stdout, stderr) {
 		event.sender.send('package-latest-close', directory, { output: stdout });
 		console.log('Exit code:', code);
 		console.log('Program output:', stdout);

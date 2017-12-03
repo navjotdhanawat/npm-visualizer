@@ -1,5 +1,14 @@
 //style.js
 const style = {
+    menuStyle: {
+        width: '100%!important'
+    },
+    noProject:{
+        textAlign: 'center',
+        padding: '20px',
+        margin: '20px',
+        marginLeft: '0px'
+    },
     overlay: {
         position: 'absolute',
         backgroundColor: 'rgba(0, 0, 0, 0.73)',
@@ -28,7 +37,7 @@ const style = {
         paddingTop: '20px'
     },
     leftPanel: {
-        margin: '20px',
+        margin: '20px'
     },
     pkgTable: {
         margin: '20px',
