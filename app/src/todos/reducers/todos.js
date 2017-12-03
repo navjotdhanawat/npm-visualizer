@@ -11,10 +11,10 @@ const dep = (state = INITIAL_STATE, action) => {
 
         case FETCH_DEPENDANCIES:
 
-            return {};//{ ...state, data: [], error: null, loading: true } ;
+            return {...state, data: [], error: null, loading: true };//{ ...state, data: [], error: null, loading: true } ;
         case FETCH_DEPENDANCIES_SUCCESS:
-
-            return {};//{ ...state, data: action.payload, error: null, loading: false };
+            
+            return action.payload;
         case FETCH_DEPENDANCIES_FAILURE:
 
             error = action.payload || {message: action.payload.message};

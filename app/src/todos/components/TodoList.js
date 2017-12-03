@@ -27,7 +27,9 @@ import {
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import TodoContainer from '../containers/TodoContainer';
-
+var Datastore = require('nedb')
+    , db = new Datastore();
+console.log(`${__dirname}/electron.db`)
 const styles = {
     root: {
         display: 'flex',
@@ -47,21 +49,29 @@ const styles = {
 class TodoList extends Component {
     constructor(props) {
         super(props);
-        var path = '/root/Documents/Workspace/vouchdog';
+        
+        this.db = null;
+        var path = Lockr.getAll(true)[0] ? Lockr.getAll(true)[0].path : '';
+        this.props.fetchDependancies(path);
         this.state = {
-            data: {},
+            dep: {},
+            data: [],
             loading: 'indeterminate',
             path: path,
             loader: true,
             snackbar: false,
             autoHideDuration: 3000,
-            message: ''
+            message: '',
+            projects: Lockr.getAll(true) || []
         };
         this.onCellHoverExit = this.onCellHoverExit.bind(this);
         this.handleRowSelection = this.handleRowSelection.bind(this);
         this.updatePackages = this.updatePackages.bind(this);
-        this.getPackages(path);
+        this.addProject = this.addProject.bind(this);
+        this.removePackages = this.removePackages.bind(this);
+        this.getPackages(this.state.path);
         this.selectedIndexes = [];
+        // ipcRenderer.send('get-db');
     }
 
     componentWillMount() {
@@ -72,19 +82,36 @@ class TodoList extends Component {
     listenEvents() {
         var self = this;
         ipcRenderer.on('package-list-close', (event, error, content) => {
-            self.onCellHoverExit(content.output);
+            
+            var output = Object.assign(content.output[1], content.output[0]);
+            self.onCellHoverExit(output);
             self.showSnackbar('Outdated packages listing');
+            self.props.fetchDependanciesSuccess(content);
         });
         ipcRenderer.on('package-update-close', (event, error, content) => {
             self.hideLoader();
-            self.showSnackbar('Selected packages successfull updated');
+            self.showSnackbar('Selected packages successfully updated');
             console.log(content);
+            self.getPackages(self.state.path);
+        });
+
+        ipcRenderer.on('package-remove-close', (event, error, content) => {
+            self.hideLoader();
+            self.showSnackbar('Selected packages successfully removed');
+            console.log(content);
+            self.getPackages(self.state.path);
         });
 
         ipcRenderer.on('package-update-all-close', (event, error, content) => {
             self.showSnackbar('Project updated successfully');
             self.hideLoader();
             console.log(content);
+        });
+
+        ipcRenderer.on('get-db-close', (event, error, db) => {
+            console.log(db);
+            // self.db = db;
+            
         });
     }
 
@@ -105,23 +132,36 @@ class TodoList extends Component {
     }
 
     getPackages(path) {
+        this.showLoader();
         ipcRenderer.send('package-list', path);
     }
 
     updatePackages() {
         this.showLoader();
         var packages = [];
-        this.selectedIndexes.forEach(function(index) {
+        this.selectedIndexes.forEach(function (index) {
             packages.push(Object.keys(this.state.data)[index]);
         }, this);
         packages = packages.toString().replace(/,/g, ' ');
-        ipcRenderer.send('package-update', {path: this.state.path, packages: packages});
+        ipcRenderer.send('package-update', { path: this.state.path, packages: packages });
+    }
+
+    removePackages() {
+        this.showLoader();
+        var packages = [];
+        this.selectedIndexes.forEach(function (index) {
+            packages.push(Object.keys(this.state.data)[index]);
+        }, this);
+        packages = packages.toString().replace(/,/g, ' ');
+        ipcRenderer.send('package-remove', { path: this.state.path, packages: packages });
     }
 
     updateProject() {
         this.showLoader();
         ipcRenderer.send('package-update-all', this.state.path);
     }
+
+    
 
     handleRowSelection(selected) {
         this.selectedIndexes = selected;
@@ -134,9 +174,25 @@ class TodoList extends Component {
         });
     }
 
-    render() {
-        var packages = this.state.data;
+    addProject(e) {
+        var path = '/Users/navjot/Documents/workplace/wingify/web-server';
+        this.setState({path: path});
+        var self = this;
+        var path = remote.dialog.showOpenDialog({
+            properties: ['openDirectory']
+        });
+        var data = require(`${path[0]}/package.json`);
+        var doc = {
+            package: data.name || '',
+            path: path[0]
+        };
 
+        Lockr.set(path[0], doc);
+    }
+
+    render() {
+        var packages = this.state.data || {};
+        
         return (
             <div>
                 <Snackbar
@@ -144,21 +200,28 @@ class TodoList extends Component {
                     message={this.state.message}
                     autoHideDuration={this.state.autoHideDuration}
                 />
-                {this.state.loader ? <CircularProgress size={60} thickness={7} style={style.loader}/> : null}
+                {this.state.loader ? 
+                <div>
+                    <div style={style.overlay}></div>
+                    <CircularProgress size={60} thickness={7} style={style.loader} />
+                </div> : null}
                 <LinearProgress mode={this.state.loading} />
                 <div>
                     <GridList cols={4}>
                         <div cols={1}>
                             <Paper zDepth={2} style={style.todoBoard} value={100}>
                                 <List>
-                                    <ListItem primaryText="Project 1" />
-                                    <ListItem primaryText="Project 2" />
-                                    <ListItem primaryText="Project 3" />
+                                    {this.state.projects && this.state.projects.length ?
+                                        this.state.projects.map(function (project, keyIndex) {
+                                            return (
+                                                <ListItem key={project.path} primaryText={project.package} />
+                                            )
+                                        }, this) : <ListItem primaryText="No projects added" />}
                                 </List>
                                 <Divider />
                                 <div>
                                     <Menu>
-                                        <MenuItem primaryText="Add Project" leftIcon={<PersonAdd />} />
+                                        <MenuItem onClick={this.addProject} primaryText="Add Project" leftIcon={<PersonAdd />} />
                                         <MenuItem primaryText="Clear" leftIcon={<Delete />} />
                                     </Menu>
                                 </div>
@@ -169,7 +232,7 @@ class TodoList extends Component {
                                 <div>
                                     <RaisedButton onClick={this.updatePackages} label="Update" primary={true} style={style.todoFormButton} />
                                     <RaisedButton label="Latest" primary={true} style={style.todoFormButton} />
-                                    <RaisedButton label="Remove" secondary={true} style={style.todoFormButton} />
+                                    <RaisedButton onClick={this.removePackages} label="Remove" secondary={true} style={style.todoFormButton} />
                                     <RaisedButton onClick={this.updateProject} label="Update Project" primary={true} style={style.todoFormButton} />
                                 </div>
 
@@ -186,11 +249,11 @@ class TodoList extends Component {
                                     <TableBody deselectOnClickaway={false}>{
                                         Object.keys(packages).map(function (keyName, keyIndex) {
                                             return (<TableRow key={keyName}>
-                                                <TableRowColumn>{keyIndex}</TableRowColumn>
+                                                <TableRowColumn>{keyIndex + 1}</TableRowColumn>
                                                 <TableRowColumn>{keyName}</TableRowColumn>
-                                                <TableRowColumn>{packages[keyName].current}</TableRowColumn>
-                                                <TableRowColumn>{packages[keyName].latest}</TableRowColumn>
-                                                <TableRowColumn>{packages[keyName].wanted}</TableRowColumn>
+                                                <TableRowColumn>{packages[keyName].current || packages[keyName].version}</TableRowColumn>
+                                                <TableRowColumn>{packages[keyName].latest || (<span>&#10003;</span>)}</TableRowColumn>
+                                                <TableRowColumn>{packages[keyName].wanted || (<span>&#10003;</span>)}</TableRowColumn>
                                             </TableRow>)
                                         }, this)
                                     }

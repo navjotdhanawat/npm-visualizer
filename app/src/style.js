@@ -1,9 +1,17 @@
 //style.js
 const style = {
+    overlay: {
+        position: 'absolute',
+        backgroundColor: 'rgba(0, 0, 0, 0.73)',
+        width: '100%',
+        height: '100%',
+        zIndex: '999'
+    },
     loader: {
         position: 'absolute',
         left: '50%',
-        top: '50%'
+        top: '50%',
+        zIndex: '9999'
     },
     body: {
         margin: '0px',

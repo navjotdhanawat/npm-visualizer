@@ -23,14 +23,15 @@
     "electron-react-devtools": "^0.4.0"
   },
   "dependencies": {
-    "axios": "^0.16.2",
     "body-parser": "^1.18.0",
     "express": "^4.15.4",
     "foreman": "^2.0.0",
     "install": "^0.10.1",
+    "lockr": "^0.8.4",
     "marked": "^0.3.6",
     "material-ui": "^0.19.1",
-    "mongoose": "^4.11.11",
+    "mongoose": "^4.13.6",
+    "nedb": "^1.8.0",
     "nodemon": "^1.12.0",
     "npm": "^5.4.1",
     "react": "^15.6.1",

@@ -6,16 +6,17 @@ import TodoList from '../components/TodoList';
 const mapStateToProps = (state) => {
 
     return {
-        data: state.dep.data
+        data: state.data
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        fetchDependancies: () => {
-            dispatch(fetchDependancies()).then((response) => {
-                !response.error ? dispatch(fetchDependanciesSuccess(response.payload.data)) : dispatch(fetchDependanciesFailure(response.payload.data));
-            });
+        fetchDependancies: (path) => {
+            dispatch(fetchDependancies(path));
+        },
+        fetchDependanciesSuccess: (data) => {
+            dispatch(fetchDependanciesSuccess(data));
         }
     }
 }

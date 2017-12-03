@@ -14,32 +14,45 @@ var shell = require('shelljs');
 ///////////////////////////////////////////////
 
 
-ipcMain.on('execute', (event, filePath) => {
-  if (!filePath) {
-    throw new Error('filePath is not defined');
-  }
+// ipcMain.on('execute', (event, filePath) => {
+//   if (!filePath) {
+//     throw new Error('filePath is not defined');
+//   }
 
-  // var child = shell.exec("tree" + "\n", { async: false });
-  // child.stdout.on('data', function (data) {
-  //   event.sender.send('execute-close', filePath, { output: data });
-  // });
+//   // var child = shell.exec("tree" + "\n", { async: false });
+//   // child.stdout.on('data', function (data) {
+//   //   event.sender.send('execute-close', filePath, { output: data });
+//   // });
 
 
+
+// });
+
+ipcMain.on('get-db', (event) => {
+  console.log('db:', db);
+  // event.sender.send('get-db-close', null, db);
+  db.find({}, function (err, records) {
+    console.log('recorsd',records);
+  });
+  db.update({ path: '/a/a/a/' }, { package: { data: 'demo' }, path: '//asd//' }, { upsert: true }, function (err, numReplaced, upsert) {
+    console.log('upsert:', upsert);
+    
+  });
 
 });
 
 
 ipcMain.on('package-update-all', (event, directory) => {
   if (!directory) {
-    throw new Error('filePath is not defined');
+    throw new Error(' is not defined');
   }
 
-  shell.exec(`cd ${directory} && npm update`, function(code, stdout, stderr) {
-        event.sender.send('package-update-all-close', directory, { output: stdout });
-        console.log('Exit code:', code);
-        console.log('Program output:', stdout);
-        console.log('Program stderr:', stderr);
-    });
+  shell.exec(`cd ${directory} && npm update`, function (code, stdout, stderr) {
+    event.sender.send('package-update-all-close', directory, { output: stdout });
+    console.log('Exit code:', code);
+    console.log('Program output:', stdout);
+    console.log('Program stderr:', stderr);
+  });
 });
 
 ipcMain.on('package-update', (event, options) => {
@@ -47,41 +60,65 @@ ipcMain.on('package-update', (event, options) => {
   const packages = options.packages;
   console.log(options);
   if (!directory) {
-    throw new Error('filePath is not defined');
+    throw new Error(' is not defined');
   }
 
-  shell.exec(`cd ${directory} && npm update ${packages} --save --json=true`, function(code, stdout, stderr) {
-        event.sender.send('package-update-close', directory, { output: stdout });
-        console.log('Exit code:', code);
-        console.log('Program output:', stdout);
-        console.log('Program stderr:', stderr);
-    });
+  shell.exec(`cd ${directory} && npm update ${packages} --save --json=true`, function (code, stdout, stderr) {
+    event.sender.send('package-update-close', directory, { output: stdout });
+    console.log('Exit code:', code);
+    console.log('Program output:', stdout);
+    console.log('Program stderr:', stderr);
+  });
+});
+
+ipcMain.on('package-remove', (event, options) => {
+  const directory = options.path;
+  const packages = options.packages;
+  console.log(options);
+  if (!directory) {
+    throw new Error(' is not defined');
+  }
+
+  shell.exec(`cd ${directory} && npm uninstall ${packages}`, function (code, stdout, stderr) {
+    event.sender.send('package-remove-close', directory, { output: stdout });
+    console.log('Exit code:', code);
+    console.log('Program output:', stdout);
+    console.log('Program stderr:', stderr);
+  });
 });
 
 ipcMain.on('package-list', (event, directory) => {
   console.log('Getting Packages...........');
   if (!directory) {
-    throw new Error('filePath is not defined');
+    throw new Error(' is not defined');
   }
 
-  // var child = shell.exec("npm ls --json=true" + "\n", { async: true, silent:true });
-  // child.stdout.on('data', function (data) {
-  //   event.sender.send('package-list-close', directory, { output: data });
-  // });
+  shell.config.execPath = directory;
+  var promise = [];
 
-  var counter = 0;
-  shell.exec(`cd ${directory} && npm outdated --json=true`, function(code, stdout, stderr) {
-        stdout = JSON.parse(stdout);
-        event.sender.send('package-list-close', directory, { output: stdout });
-        console.log('Exit code:', code);
-        console.log('Program output:', stdout);
-        console.log('Program stderr:', stderr);
-        console.log('Counter------------------' + counter);
-        counter++;
-    });
-
-  // shell.exec('npm ls --json=true', function(code, stdout, stderr) {
-  //   event.sender.send('execute-close', directory, { output: stdout });
+  promise.push(new Promise(function(resolve, reject) {
+    shell.exec(`cd ${directory} && npm outdated --json=true`, function (code, stdout, stderr) {
+      stdout = JSON.parse(stdout);
+      resolve(stdout);
+    })
+  }))
+  promise.push(new Promise(function(resolve, reject) {
+    shell.exec(`npm ls --json=true`, function (code, stdout, stderr) {
+      stdout = JSON.parse(stdout).dependencies;
+      resolve(stdout);
+    })
+  }))
+  // promise.push(shell.exec(`npm ls --json=true`))
+  Promise.all(promise).then(function(output) {
+    console.log('Event--------');
+    event.sender.send('package-list-close', directory, { output: output });
+  });
+  // shell.exec(`cd ${directory} && npm outdated --json=true`, function (code, stdout, stderr) {
+  //   stdout = JSON.parse(stdout);
+  //   event.sender.send('package-list-close', directory, { output: stdout });
+  //   console.log('Exit code:', code);
+  //   console.log('Program output:', stdout);
+  //   console.log('Program stderr:', stderr);
   // });
 });
 
@@ -103,9 +140,9 @@ ipcMain.on('package-list', (event, directory) => {
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
-function createWindow () {
+function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({ width: 800, height: 600 })
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({

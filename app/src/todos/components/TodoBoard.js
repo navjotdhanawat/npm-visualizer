@@ -22,7 +22,7 @@ class TodoBoard extends Component {
     constructor(props) {
         super(props);
         this.state = { data: [] };
-
+        // localStorage.setItem('projects', JSON.stringify(['/Users/navjot/Documents/workplace/postify']))
         // ipcRenderer.on('execute-close', (event, error, content) => {
         //     console.log(content);
         // });
@@ -36,7 +36,7 @@ class TodoBoard extends Component {
         var self = this;
         remote.dialog.showOpenDialog({}, (path) => {
             console.log(path);
-            self.path = path[0];
+            
         });
     }
 
@@ -60,7 +60,8 @@ class TodoBoard extends Component {
                     </Toolbar>
                     <div>
                         <div>
-                            <Route handler={this.path} path="/" component={TodoListContainer} exact />
+                            <Route path="/" component={TodoListContainer} exact sdsd="jkgh" />
+                            <Route path="/:url" component={TodoListContainer} exact />
                             <Route path="/about" component={Hello} exact />
                         </div>
                     </div>
