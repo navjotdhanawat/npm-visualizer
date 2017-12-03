@@ -13,6 +13,11 @@
 3. npm install
 4. npm start
 ```
+
+#### Create ubuntu installer file(.deb file):
+```
+npm run dist
+```
 #### Technology Stack:
 1. [ReactJs](https://reactjs.org/)
 2. [Electron](https://electronjs.org/)

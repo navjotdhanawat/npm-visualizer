@@ -302,10 +302,11 @@ class PackageList extends Component {
                                     </TableHeader>
                                     <TableBody deselectOnClickaway={false}>{
                                         Object.keys(packages).map(function (keyName, keyIndex) {
+
                                             return (<TableRow key={keyName}>
                                                 <TableRowColumn>{keyIndex + 1}</TableRowColumn>
                                                 <TableRowColumn>{keyName}</TableRowColumn>
-                                                <TableRowColumn>{packages[keyName].current || packages[keyName].version}</TableRowColumn>
+                                                <TableRowColumn>{packages[keyName].current || packages[keyName].version || packages[keyName].required.version}</TableRowColumn>
                                                 <TableRowColumn>{packages[keyName].latest || (<span>&#10003;</span>)}</TableRowColumn>
                                                 <TableRowColumn>{packages[keyName].wanted || (<span>&#10003;</span>)}</TableRowColumn>
                                             </TableRow>)
