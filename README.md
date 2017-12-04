@@ -1,5 +1,6 @@
 # NPM Visualizer: Manage NPM packages with GUI
 
+![Screenshot](https://www.w3schools.com/w3css/img_fjords.jpg "NPM Visualizer screenshot")
 #### Features:
 1. Import multiple projects(NPM CLI Projects)
 2. List all packages with current version, wanted version, latest version
