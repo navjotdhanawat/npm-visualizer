@@ -3,7 +3,7 @@ import {
 } from '../actions/index';
 
 
-const INITIAL_STATE = { data: [], error: null, loading: false};
+const INITIAL_STATE = {};
 
 const dep = (state = INITIAL_STATE, action) => {
     let error;
@@ -11,9 +11,9 @@ const dep = (state = INITIAL_STATE, action) => {
 
         case FETCH_DEPENDANCIES:
 
-            return {...state, data: [], error: null, loading: true };//{ ...state, data: [], error: null, loading: true } ;
+            return state
         case FETCH_DEPENDANCIES_SUCCESS:
-            
+            debugger
             return action.payload;
         case FETCH_DEPENDANCIES_FAILURE:
 

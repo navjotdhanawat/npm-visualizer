@@ -14,6 +14,7 @@ import { remote, ipcRenderer } from 'electron';
 import { HashRouter, Route, Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
+import NewContainer from '../containers/NewContainer';
 
 class PackageBoard extends Component {
     constructor(props) {
@@ -57,8 +58,7 @@ class PackageBoard extends Component {
                     </Toolbar>
                     <div>
                         <div>
-                            <Route path="/" component={PackageListContainer} exact sdsd="jkgh" />
-                            <Route path="/:url" component={PackageListContainer} exact />
+                            <Route path="/:url" component={NewContainer} exact />
                         </div>
                     </div>
 
