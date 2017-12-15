@@ -13,18 +13,6 @@ export function fetchDependancies(path) {
     };
 }
 
-export function loadHomeItems() {
-	return function (dispatch) {
-		dispatch(requestItems());
-		return itemApi.getHomeItems().then(items => {
-			var state = items.docs;
-			dispatch(loadHomeItemsSuccess(state));
-		}).catch(error => {
-			throw (error);
-		});
-	};
-}
-
 export function fetchDependanciesSuccess(data) {
 
     return {

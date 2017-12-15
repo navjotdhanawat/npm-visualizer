@@ -4,16 +4,15 @@ import NewComponent from '../components/NewComponent';
 
 
 const mapStateToProps = (state) => {
-    debugger
     return {
-        data: state.dep
+        data: state.dep.data
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        fetchDependancies: () => {
-            dispatch(fetchDependancies('/root/Documents/Workspace/npm-visualizer/'));
+        fetchDependancies: (path) => {
+            dispatch(fetchDependancies(path));
         },
         fetchDependanciesSuccess: (data) => {
             dispatch(fetchDependanciesSuccess(data));
