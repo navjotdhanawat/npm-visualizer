@@ -103,6 +103,22 @@ ipcMain.on('package-remove', (event, options) => {
 	});
 });
 
+ipcMain.on('package-install', (event, options) => {
+	const directory = options.path;
+	const packages = options.packages;
+	console.log(options);
+	if (!directory) {
+		throw new Error(' is not defined');
+	}
+	console.log(`cd ${directory} && npm install --save ${packages}`);
+	shell.exec(`cd ${directory} && npm install --save ${packages}`, function (code, stdout, stderr) {
+		event.sender.send('package-install-close', directory, { output: stdout });
+		console.log('Exit code:', code);
+		console.log('Program output:', stdout);
+		console.log('Program stderr:', stderr);
+	});
+});
+
 ipcMain.on('package-list', (event, directory) => {
 	console.log('Getting Packages...........', directory);
 	if (!directory) {

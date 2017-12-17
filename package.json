@@ -22,10 +22,10 @@
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
-    "electron-prebuilt-compile": "^1.6.11",
-    "electron-react-devtools": "^0.4.0",
     "electron-builder": "^19.19.1",
-    "electron-packager": "^8.7.2"
+    "electron-packager": "^8.7.2",
+    "electron-prebuilt-compile": "^1.6.11",
+    "electron-react-devtools": "^0.5.2"
   },
   "build": {
     "appId": "com.npm.visualizer",

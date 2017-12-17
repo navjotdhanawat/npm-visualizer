@@ -95,6 +95,9 @@ const style = {
     todoFormButton: {
         marginLeft:'15px'
     },
+    packageText: {
+        width: '200px'
+    },
     todoFormCompleted: {
         margin:'3px',
         padding:'0 10px',

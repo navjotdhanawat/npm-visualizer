@@ -5,7 +5,7 @@ import * as _ from 'underscore';
 import { remote, ipcRenderer } from 'electron';
 import {
     RaisedButton, GridList, Paper, List, ListItem, FloatingActionButton, Divider, Menu, MenuItem,
-    LinearProgress, CircularProgress, Snackbar, Subheader
+    LinearProgress, CircularProgress, Snackbar, Subheader, TextField
 } from 'material-ui';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import RemoveRedEye from 'material-ui/svg-icons/image/remove-red-eye';
@@ -72,6 +72,7 @@ class PackageList extends Component {
         this.clearProject = this.clearProject.bind(this);
         this.updateProject = this.updateProject.bind(this);
         this.updatePackagesLatest = this.updatePackagesLatest.bind(this);
+        this.installPackage = this.installPackage.bind(this);
         this.selectedIndexes = [];
     }
 
@@ -108,6 +109,17 @@ class PackageList extends Component {
             self.showSnackbar('Selected packages successfully removed');
             console.log(content);
             self.getPackages(self.state.path);
+        });
+
+        ipcRenderer.on('package-install-close', (event, error, content) => {
+            self.hideLoader();
+            if (content.output) {
+                self.showSnackbar('Selected packages successfully installed');
+                console.log(content);
+                self.getPackages(self.state.path);
+            } else {
+                self.showSnackbar('Selected packages not installed.');
+            }
         });
 
         ipcRenderer.on('package-update-all-close', (event, error, content) => {
@@ -194,7 +206,15 @@ class PackageList extends Component {
         }
     }
 
-
+    installPackage() {
+        var packages = document.getElementById('pkgToInstall').value;
+        if (packages) {
+            this.showLoader();
+            ipcRenderer.send('package-install', { path: this.state.path, packages: packages });
+        } else {
+            this.showSnackbar('Please enter package name.');
+        }
+    }
 
     handleRowSelection(selected) {
         this.selectedIndexes = selected;
@@ -283,12 +303,18 @@ class PackageList extends Component {
                         <div cols={6}>
                             {Object.keys(packages).length ?
                             <Paper zDepth={2} style={style.pkgTable}>
-                                <div>
-                                    <RaisedButton onClick={this.updatePackages} label="Update" primary={true} style={style.todoFormButton} />
-                                    <RaisedButton onClick={this.updatePackagesLatest} label="Latest" primary={true} style={style.todoFormButton} />
-                                    <RaisedButton onClick={this.removePackages} label="Remove" secondary={true} style={style.todoFormButton} />
-                                    <RaisedButton onClick={this.updateProject} label="Update Project" primary={true} style={style.todoFormButton} />
-                                </div>
+                                <GridList cols={100}>
+                                    <div cols={60}>
+                                        <RaisedButton onClick={this.updatePackages} label="Update" primary={true} style={style.todoFormButton} />
+                                        <RaisedButton onClick={this.updatePackagesLatest} label="Latest" primary={true} style={style.todoFormButton} />
+                                        <RaisedButton onClick={this.removePackages} label="Remove" secondary={true} style={style.todoFormButton} />
+                                        <RaisedButton onClick={this.updateProject} label="Update Project" primary={true} style={style.todoFormButton} />
+                                    </div>
+                                    <div cols={40}>
+                                        <TextField id="pkgToInstall" hintText="Package name" />
+                                        <RaisedButton onClick={this.installPackage} label="Install" primary={true} style={style.todoFormButton} />
+                                    </div>
+                                </GridList>
 
                                 <Table multiSelectable={true} onRowSelection={this.handleRowSelection}>
                                     <TableHeader>
