@@ -198,7 +198,7 @@ class PackageList extends Component {
     }
 
     updateProject() {
-        if (this.state.project.length) {
+        if (this.state.projects.length) {
             this.showLoader();
             ipcRenderer.send('package-update-all', this.state.path);
         } else {

@@ -46,8 +46,9 @@ ipcMain.on('package-update-all', (event, directory) => {
 	if (!directory) {
 		throw new Error(' is not defined');
 	}
-
+	console.log(`cd ${directory} && npm update`);
 	shell.exec(`cd ${directory} && npm update`, function (code, stdout, stderr) {
+		console.log('Done----------Update');
 		event.sender.send('package-update-all-close', directory, { output: stdout });
 		console.log('Exit code:', code);
 		console.log('Program output:', stdout);
